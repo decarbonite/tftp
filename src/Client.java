@@ -10,6 +10,7 @@ import java.net.SocketException;
 
 public class Client {
     private DatagramSocket sendReceiveSocket;
+
     public enum RequestType {READ, WRITE, INVALID}
 
     public Client() {
@@ -166,7 +167,6 @@ public class Client {
     }
 
     public static void main(String args[]) {
-        Client c = new Client();
-        c.sendAndReceive();
+        new Client().sendAndReceive();
     }
 }

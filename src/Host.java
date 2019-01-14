@@ -10,7 +10,6 @@ import java.net.SocketException;
 public class Host {
 
     private DatagramSocket receiveSocket, sendReceiveSocket;
-    private DatagramPacket receivePacket, sendPacket;
 
     public Host() {
         try {
@@ -20,12 +19,14 @@ public class Host {
             e.printStackTrace();
             System.exit(1);
         }
+    }
 
+    public void sendAndReceive(){
         while (true) {
             try {
                 System.out.println("Host: Waiting for a packet...\n");
                 byte[] data = new byte[1024];
-                receivePacket = new DatagramPacket(data, data.length);
+                DatagramPacket receivePacket = new DatagramPacket(data, data.length);
                 receiveSocket.receive(receivePacket);
 
                 int clientPort = receivePacket.getPort();
@@ -41,7 +42,7 @@ public class Host {
                     System.out.print(receivePacket.getData()[i]+ " ");
                 }
 
-                sendPacket = new DatagramPacket(receivePacket.getData(), receivePacket.getLength(), receivePacket.getAddress(), 69);
+                DatagramPacket sendPacket = new DatagramPacket(receivePacket.getData(), receivePacket.getLength(), receivePacket.getAddress(), 69);
                 sendReceiveSocket.send(sendPacket);
 
                 System.out.println("\n\n\nHost: Sending packet to Server:-");
@@ -92,6 +93,6 @@ public class Host {
     }
 
     public static void main(String[] args) {
-        new Host();
+        new Host().sendAndReceive();
     }
 }

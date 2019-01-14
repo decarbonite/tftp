@@ -9,8 +9,8 @@ import java.net.SocketException;
 
 public class Server {
 
-    private DatagramPacket sendPacket, receivePacket;
-    private DatagramSocket sendSocket, receiveSocket;
+    private DatagramPacket sendPacket;
+    private DatagramSocket receiveSocket, sendSocket;
 
     public Server() {
         try {
@@ -28,7 +28,7 @@ public class Server {
         while (true) {
             try {
                 byte data[] = new byte[1024];
-                receivePacket = new DatagramPacket(data, data.length);
+                DatagramPacket receivePacket = new DatagramPacket(data, data.length);
                 receiveSocket.receive(receivePacket);
 
                 //Printing content of the packet
@@ -44,7 +44,7 @@ public class Server {
                 System.out.println("\n");
 
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -53,11 +53,11 @@ public class Server {
                     throw new IOException("Invalid Request!");
                 } else {
                     sendSocket = new DatagramSocket();
-                    if (data[1] == 1) {
+                    if (receivePacket.getData()[1] == 1) {
                         byte[] sendData = {0, 3, 0, 1};
                         sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
                         sendSocket.send(sendPacket);
-                    } else if (data[1] == 2) {
+                    } else if (receivePacket.getData()[1] == 2) {
                         byte[] sendData = {0, 4, 0, 0};
                         sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
                         sendSocket.send(sendPacket);
@@ -101,7 +101,6 @@ public class Server {
     }
 
     public static void main(String args[]) {
-        Server c = new Server();
-        c.receiveAndEcho();
+        new Server().receiveAndEcho();
     }
 }
