@@ -149,6 +149,7 @@ public class Client {
                 break;
             default:
                 data[dataSize++] = 3;
+                break;
         }
 
         for (int i = 0; i < fileSize; i++) {
