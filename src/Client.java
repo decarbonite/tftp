@@ -10,7 +10,7 @@ import java.net.SocketException;
 
 public class Client {
     private DatagramSocket sendReceiveSocket;
-    private byte[] data;
+    public enum RequestType {READ, WRITE, INVALID}
 
     public Client() {
         try {
@@ -26,7 +26,7 @@ public class Client {
             //5 times write request
             if ((i % 2) == 0 && i != 10) {
                 try {
-                    DatagramPacket sendPacket = writeRequest("Fi", "octet");
+                    DatagramPacket sendPacket = request("name.txt", "octet", RequestType.WRITE);
                     sendReceiveSocket.send(sendPacket);
 
                     //Printing content of the packet
@@ -38,7 +38,7 @@ public class Client {
                     System.out.print("In bytes: ");
 
                     for (int j = 0; j < sendPacket.getLength(); j++) {
-                        System.out.print(sendPacket.getData()[j]+ " ");
+                        System.out.print(sendPacket.getData()[j] + " ");
                     }
                     System.out.println("\n");
 
@@ -54,7 +54,7 @@ public class Client {
                     System.out.print("In bytes: ");
 
                     for (int j = 0; j < receivePacket.getLength(); j++) {
-                        System.out.print(receivePacket.getData()[j]+ " ");
+                        System.out.print(receivePacket.getData()[j] + " ");
                     }
                     System.out.println("\n");
                 } catch (IOException e) {
@@ -63,7 +63,7 @@ public class Client {
                 //5 times read request
             } else if ((i % 2) == 1) {
                 try {
-                    DatagramPacket sendPacket = readRequest("Fil", "netascii");
+                    DatagramPacket sendPacket = request("test.txt", "netascii", RequestType.READ);
                     sendReceiveSocket.send(sendPacket);
 
                     //Printing content of the packet
@@ -75,7 +75,7 @@ public class Client {
                     System.out.print("In bytes: ");
 
                     for (int j = 0; j < sendPacket.getLength(); j++) {
-                        System.out.print(sendPacket.getData()[j]+ " ");
+                        System.out.print(sendPacket.getData()[j] + " ");
                     }
                     System.out.println("\n");
 
@@ -91,7 +91,7 @@ public class Client {
                     System.out.print("In bytes: ");
 
                     for (int j = 0; j < receivePacket.getLength(); j++) {
-                        System.out.print(receivePacket.getData()[j]+ " ");
+                        System.out.print(receivePacket.getData()[j] + " ");
                     }
                     System.out.println("\n");
 
@@ -102,7 +102,7 @@ public class Client {
                 //11th time invalid request
             } else {
                 try {
-                    DatagramPacket sendPacket = invalidRequest();
+                    DatagramPacket sendPacket = request("filename.txt", "octet", RequestType.INVALID);
                     sendReceiveSocket.send(sendPacket);
 
                     System.out.println("Client: Sending invalid request to Host:-");
@@ -112,7 +112,7 @@ public class Client {
                     System.out.println(new String(sendPacket.getData(), 0, sendPacket.getLength()));
                     System.out.print("In bytes: ");
                     for (int j = 0; j < sendPacket.getLength(); j++) {
-                        System.out.print(sendPacket.getData()[j]+ " ");
+                        System.out.print(sendPacket.getData()[j] + " ");
                     }
                     System.out.println("\n");
                 } catch (IOException e) {
@@ -123,12 +123,12 @@ public class Client {
         sendReceiveSocket.close();
     }
 
-    public DatagramPacket readRequest(String filename, String mode) throws IOException {
+    public DatagramPacket request(String filename, String mode, RequestType type) throws IOException {
         int fileSize = filename.getBytes().length;
         int modeSize = mode.getBytes().length;
         final int MSG_SIZE = fileSize + modeSize + 4;
 
-        data = new byte[MSG_SIZE];
+        byte[] data = new byte[MSG_SIZE];
 
         if (!(mode.equalsIgnoreCase("netascii") || mode.equalsIgnoreCase("octet"))) {
             data[1] = 3;    //invalid request if incorrect mode
@@ -137,7 +137,20 @@ public class Client {
 
         int dataSize = 0;
         data[dataSize++] = 0;
-        data[dataSize++] = 1;
+        switch (type) {
+            case READ:
+                data[dataSize++] = 1;
+                break;
+            case WRITE:
+                data[dataSize++] = 2;
+                break;
+            case INVALID:
+                data[dataSize++] = 3;
+                break;
+            default:
+                data[dataSize++] = 3;
+        }
+
         for (int i = 0; i < fileSize; i++) {
             data[dataSize++] = filename.getBytes()[i];
         }
@@ -148,39 +161,6 @@ public class Client {
         }
         data[dataSize] = 0;
 
-        return new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
-    }
-
-    public DatagramPacket writeRequest(String filename, String mode) throws IOException {
-        final int MSG_SIZE = filename.getBytes().length + mode.getBytes().length + 4;
-        data = new byte[MSG_SIZE];
-
-        if (!(mode.equalsIgnoreCase("netascii") || mode.equalsIgnoreCase("octet"))) {
-            data[1] = 3;    //invalid request if incorrect mode
-            return new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
-        }
-
-        int dataSize = 0;
-        data[dataSize++] = 0;
-        data[dataSize++] = 2;
-        int fileSize = filename.getBytes().length;
-
-        for (int i = 0; i < fileSize; i++) {
-            data[dataSize++] = filename.getBytes()[i];
-        }
-        data[dataSize++] = 0;
-
-        int modeSize = mode.getBytes().length;
-        for (int i = 0; i < modeSize; i++) {
-            data[dataSize++] = mode.getBytes()[i];
-        }
-        data[dataSize] = 0;
-
-        return new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
-    }
-
-    public DatagramPacket invalidRequest() throws IOException {
-        data[1] = 3;
         return new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
     }
 

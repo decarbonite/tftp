@@ -11,7 +11,6 @@ public class Host {
 
     private DatagramSocket receiveSocket, sendReceiveSocket;
     private DatagramPacket receivePacket, sendPacket;
-    byte[] data;
 
     public Host() {
         try {
@@ -25,7 +24,7 @@ public class Host {
         while (true) {
             try {
                 System.out.println("Host: Waiting for a packet...\n");
-                data = new byte[1024];
+                byte[] data = new byte[1024];
                 receivePacket = new DatagramPacket(data, data.length);
                 receiveSocket.receive(receivePacket);
 
