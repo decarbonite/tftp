@@ -32,7 +32,7 @@ public class Server {
                 receiveSocket.receive(receivePacket);
 
                 //Printing content of the packet
-                System.out.println("Server: received packet from Host:-");
+                System.out.println("\nServer: received packet from Host:-");
                 System.out.println("Host port: " + receivePacket.getPort());
                 System.out.println("Length: " + receivePacket.getLength());
                 System.out.print("Containing: ");
@@ -73,7 +73,6 @@ public class Server {
                 for (int j = 0; j < sendPacket.getLength(); j++) {
                     System.out.print(sendPacket.getData()[j] + " ");
                 }
-                System.out.println("----------------------------\n");
 
                 sendSocket.close();
             } catch (IOException e) {
@@ -85,19 +84,30 @@ public class Server {
 
     public boolean isValid(DatagramPacket packet) {
         if (packet == null) return false;
-        byte[] data = packet.getData();
-        if (!(data[0] == 0 && (data[1] == 1 || data[1] == 2))) return false;
+        //byte[] data = packet.getData();
+        if (!(packet.getData()[0] == 0 && (packet.getData()[1] == 1 || packet.getData()[1] == 2))) return false;
 
-        //check for 0 after text
-        for (int i = 3; i < packet.getLength() - 1; i++) {
-            if (data[i] == 0) break;
+        int i;
+        //check for 0 after filename text
+        for (i = 2; i < packet.getLength() - 1; i++) {
+            if (packet.getData()[i] == 0) break;
 
             //reached the end without finding a 0
-            if (i == packet.getLength() - 1) return false;
+            if (i == packet.getLength() - 2) return false;
+        }
+
+        //build up mode and convert it to string
+        StringBuilder mode = new StringBuilder();
+        for (int j = i+1; j < packet.getLength()-1; j++) {
+            mode.append((char) packet.getData()[j]);
+        }
+        //check if mode is correct
+        if (!(mode.toString().equalsIgnoreCase("netascii") || mode.toString().equalsIgnoreCase("octet"))) {
+            return false;
         }
 
         //return true if last index is 0
-        return data[data.length - 1] == 0;
+        return packet.getData()[packet.getLength()- 1] == 0;
     }
 
     public static void main(String args[]) {

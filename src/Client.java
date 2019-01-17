@@ -80,7 +80,7 @@ public class Client {
                     }
                     System.out.println("\n");
 
-                    byte[] data = new byte[20];
+                    byte[] data = new byte[1024];
                     DatagramPacket receivePacket = new DatagramPacket(data, data.length);
                     sendReceiveSocket.receive(receivePacket);
 
@@ -131,10 +131,10 @@ public class Client {
 
         byte[] data = new byte[MSG_SIZE];
 
-        if (!(mode.equalsIgnoreCase("netascii") || mode.equalsIgnoreCase("octet"))) {
+        /*if (!(mode.equalsIgnoreCase("netascii") || mode.equalsIgnoreCase("octet"))) {
             data[1] = 3;    //invalid request if incorrect mode
             return new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
-        }
+        }*/
 
         int dataSize = 0;
         data[dataSize++] = 0;
@@ -153,14 +153,16 @@ public class Client {
                 break;
         }
 
-        for (int i = 0; i < fileSize; i++) {
-            data[dataSize++] = filename.getBytes()[i];
-        }
+        byte[] fileBytes = filename.getBytes();
+        for (int i = 0; i < fileSize; i++)
+            data[dataSize++] = fileBytes[i];
+
         data[dataSize++] = 0;
 
-        for (int i = 0; i < modeSize; i++) {
-            data[dataSize++] = mode.getBytes()[i];
-        }
+        byte[] modeBytes = mode.getBytes();
+        for (int i = 0; i < modeSize; i++)
+            data[dataSize++] = modeBytes[i];
+
         data[dataSize] = 0;
 
         return new DatagramPacket(data, data.length, InetAddress.getLocalHost(), 23);
